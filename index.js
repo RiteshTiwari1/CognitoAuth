@@ -24,7 +24,7 @@ const generateSecretHash = (username, clientId, clientSecret) => {
 };
 
 app.post('/register', async (req, res) => {
-    console.log(req.body);
+
     const { name, phoneNumber, email } = req.body;
 
     const params = {
@@ -40,7 +40,6 @@ app.post('/register', async (req, res) => {
 
     try {
         const x= await cognitoIdentityServiceProvider.adminCreateUser(params).promise();
-        console.log(x);
         await cognitoIdentityServiceProvider.adminCreateUser({
         "UserPoolId": userPoolId,
         "DesiredDeliveryMediums": ['EMAIL'],
@@ -92,7 +91,7 @@ app.post('/signin-and-change-password', async (req, res) => {
     try {
         // Attempt to sign in with the temporary password
         const signInResponse = await cognitoIdentityServiceProvider.adminInitiateAuth(signInParams).promise();
-        console.log(signInResponse);
+        
         if (signInResponse.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
             const { USER_ID_FOR_SRP } = signInResponse.ChallengeParameters;
             await cognitoIdentityServiceProvider.respondToAuthChallenge({
@@ -162,8 +161,6 @@ app.post('/forgot-password', async (req, res) => {
         
             
         }).promise();
-
-        console.log(forgotPassword);
         
         
         res.json({ forgotPassword: forgotPassword });
@@ -202,7 +199,6 @@ app.post('/confirm-forgot-password', async (req, res) => {
 });
 
 app.post('/register/email', async (req, res) => {
-    console.log(req.body);
     const { emailID , phone_number, name} = req.body;
 
     const params = {
@@ -222,7 +218,6 @@ app.post('/register/email', async (req, res) => {
 
     try {
         const x = await cognitoIdentityServiceProvider.adminCreateUser(params).promise();
-        console.log(x);
         await cognitoIdentityServiceProvider.adminCreateUser({
         "UserPoolId": userPoolId,
         "DesiredDeliveryMediums": ['EMAIL'],
@@ -254,12 +249,8 @@ const blockedIPs = new Map();
 
 const checkBlockedIP = (req, res, next) => {
     const clientIP = req.ip;
-    
-    console.log("hello");
     if (blockedIPs.has(clientIP)) {
         const currentTime = new Date().toLocaleTimeString();
-
-        console.log("Current time:", currentTime);
         return res.status(429).json({ message: "Too many requests from this IP, please try again later" });
     }
     next();
@@ -282,7 +273,6 @@ const limiter = rateLimit({
 
 
 app.patch('/user/edit', async(req,res) =>{
-    console.log(req.body);
     const { emailID } = req.body;
 
     const params = {
@@ -297,7 +287,6 @@ app.patch('/user/edit', async(req,res) =>{
 
     try {
         const x = await cognitoIdentityServiceProvider.adminUpdateUserAttributes(params).promise();
-        console.log(x);
         res.json({ message: 'User updated successfully' });
     } catch (error) {
         console.error('Error updating user:', error);
@@ -309,7 +298,6 @@ app.post('/signin/email', checkBlockedIP ,limiter, async (req, res, next) => {
 
     const clientIP = req.ip;
     if (blockedIPs.has(clientIP)) {
-        console.log("hello");
         return res.status(429).json({ message: "Too many requests from this IP, please try again later" });
     }
 
@@ -356,8 +344,6 @@ app.post('/signin/email-otp', async (req, res) => {
             }
         }, async (error, data) => {
             if (error) {
-
-                console.log("121")
                 console.error('Error:', error);
                 
                 res.status(400).json({ message: 'Error signing in', error: error.message });
@@ -389,8 +375,6 @@ async function verify(data) {
         const payload = await idTokenVerifier.verify(
             data // Assuming idToken is a property of the data object
         );
-        // Handle the verified payload here
-        console.log(payload);
     } catch (err) {
         console.log(err);
     }
